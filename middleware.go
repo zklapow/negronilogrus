@@ -33,10 +33,13 @@ func NewCustomMiddleware(level logrus.Level, formatter logrus.Formatter, name st
 
 func (l *Middleware) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	start := time.Now()
+
+	requestId := r.Header.Get("X-Request-Id")
 	l.Logger.WithFields(logrus.Fields{
-		"method":  r.Method,
-		"request": r.RequestURI,
-		"remote":  r.RemoteAddr,
+		"method":     r.Method,
+		"request":    r.RequestURI,
+		"remote":     r.RemoteAddr,
+		"request_id": requestId,
 	}).Info("started handling request")
 
 	next(rw, r)
@@ -48,6 +51,7 @@ func (l *Middleware) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		"method":      r.Method,
 		"request":     r.RequestURI,
 		"remote":      r.RemoteAddr,
+		"request_id":  requestId,
 		"text_status": http.StatusText(res.Status()),
 		"took":        latency,
 		fmt.Sprintf("measure#%s.latency", l.Name): latency.Nanoseconds(),
